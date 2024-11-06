@@ -80,3 +80,23 @@ int main()
 프레임당 시간을 리셋[tm.reset()]시켜 시간이 누적되는 현상 방지
 cvtColor로 RGB에서 Gray로 변환시키고 변환한 영상을 threshold를 통해 이진화 진행하여
 각 포트의 인자가 전달되는 VideoWriter 객체에 전송.
+
+```
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.570: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+Time : 2.35668ms
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.597: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.603: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.603: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+Time : 3.45458ms
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.631: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.637: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+
+(camera:12973): GStreamer-CRITICAL **: 07:42:52.637: gst_buffer_resize_range: assertion 'bufmax >= bufoffs + offset + size' failed
+Time : 2.43439ms
+```
+각 프레임당 걸리는 속도 측정 평균 2~3ms
