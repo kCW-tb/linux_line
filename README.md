@@ -75,3 +75,8 @@ int main()
     return 0;
 }
 ```
+
+각 포트별로 8001~8003의 포트를 window에서 열어주어 대기상태 유지
+프레임당 시간을 리셋[tm.reset()]시켜 시간이 누적되는 현상 방지
+cvtColor로 RGB에서 Gray로 변환시키고 변환한 영상을 threshold를 통해 이진화 진행하여
+각 포트의 인자가 전달되는 VideoWriter 객체에 전송.
