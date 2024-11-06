@@ -54,6 +54,7 @@ int main()
     cv::TickMeter tm;
     Mat frame, gray, thresh;
     while (true) {
+        tm.reset();
         tm.start();
         
         source >> frame;
