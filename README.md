@@ -2,5 +2,3 @@
 Smart_vision github repository
 
 
-https://youtu.be/mZUTJtY_b4c
-작동영상 링크
