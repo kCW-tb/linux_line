@@ -52,3 +52,19 @@ if (mx.kbhit())
 ```
 키를 받으면 해당 문자를 파악하여 각 모터에 대해 속도를 조절하고 입력값이 너무 차이날 때 천천히 증가 혹은 감소하도록 +5씩 증가하거나 -5씩 감소하도록 함.
 
+
+```
+char c = mx.getch();
+            switch(c)
+            {
+                case 's': goal1 = 0; goal2 = 0; break;
+                case ' ': goal1 = 0; goal2 = 0; break;
+                case 'f': goal1 += 10; goal2 += -10; break;
+                case 'b': goal1 += -10; goal2 += 10; break;
+                case 'l': goal1 += -5; goal2 += -5; break;
+                case 'r': goal1 += 5; goal2 += 5; break;
+                default : goal1 = 0; goal2 = 0; break;
+            }
+```
+nature코드는 부드럽게 움직이도록 수정한 코드.
+값을 지정하는 것 대신 +=을 통해서 조금씩 속도가 움직이도록 함.
