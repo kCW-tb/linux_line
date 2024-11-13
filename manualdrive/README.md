@@ -68,3 +68,7 @@ char c = mx.getch();
 ```
 nature코드는 부드럽게 움직이도록 수정한 코드.
 값을 지정하는 것 대신 +=을 통해서 조금씩 속도가 움직이도록 함.
+
+https://youtu.be/mZUTJtY_b4c
+작동영상 링크
+
