@@ -6,6 +6,10 @@
 #include <sys/time.h>
 #include <signal.h>
 #include "opencv2/opencv.hpp"
+#include <cmath>
+#include <vector>
+#include <algorithm>
+#include <ctime>
 
 using namespace cv;
 using namespace std;
