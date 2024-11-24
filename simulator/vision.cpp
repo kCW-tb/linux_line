@@ -22,3 +22,17 @@ Mat pre_image(Mat origin){
     return roi;
 }
 
+fix_p::fix_p(int index, double distance) {
+    this->index = index;
+    this->distance = distance;
+}
+int fix_p::get_index(void) {
+     return this->index;
+}
+double fix_p::get_distance() {
+    return this->distance;
+}
+
+bool compare_function(fix_p& compair_one, fix_p& compair_two) {
+    return compair_one.get_distance() < compair_two.get_distance();
+}
