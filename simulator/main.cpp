@@ -39,6 +39,12 @@ int main(void)
     VideoCapture line_video("out_line.mp4");
     if(!line_video.isOpened()) { cerr << "Can't open the video" << endl; return -1; }
 
+    Mat frame, pImage;
+    Mat labels, stats, centroids;
+
+    Point2d past_point(320, 45), present_point(320, 45); //과거 및 현재 좌표
+    double distance; //중심점
+
     cv::TickMeter tm;
     while (true) {
         tm.reset();
@@ -83,21 +89,20 @@ int main(void)
         cout << "error: " << error << "\t";
         //cout << " / Point: " << present_point << endl;
 
-        //다른 라인 및 객체
-        for (int j = 1; j < v.size(); j++) {
+        //Blue
+        for (size_t j = 1; j < v.size(); j++) {
             double* p = centroids.ptr<double>(v[j].get_index());
             int* q = stats.ptr<int>(v[j].get_index());
             circle(pImage, Point(p[0], p[1]), 3, Scalar(255, 0, 0), -1);
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(255, 0, 0));
         }
-        //진행할 라인
+        //Red
         circle(pImage, present_point, 3, Scalar(0, 0, 255), -1);
         int *q = stats.ptr<int>(v[0].get_index());
         rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(0,0,255));
 
-
-        imshow("originImage", frame);
-        imshow("pImage", pImage);
+        origin << frame;
+        preImg << pImage;    
 
         past_point = present_point; //과거좌표 초기화
         tm.stop();
