@@ -72,7 +72,7 @@ int main(void)
         present_point = Point2d(p[0], p[1]);
 
         distance = sqrt(pow((present_point.x - past_point.x), 2) + pow((present_point.y - past_point.y), 2));
-        //if(distance > pImage.rows / 3) { //카메라가 30fps로 전달하는데 물리적으로 이동이 가능하지 않을 때
+        
         if ((abs(present_point.x - past_point.x) > pImage.cols / 2) || (abs(present_point.y - past_point.y) > pImage.rows / 2)) {
             present_point = past_point;
             //cout << "distance : " << distance << endl;
@@ -83,14 +83,14 @@ int main(void)
         cout << "error: " << error << "\t";
         //cout << " / Point: " << present_point << endl;
 
-        //Blue
+        //다른 라인 및 객체
         for (int j = 1; j < v.size(); j++) {
             double* p = centroids.ptr<double>(v[j].get_index());
             int* q = stats.ptr<int>(v[j].get_index());
             circle(pImage, Point(p[0], p[1]), 3, Scalar(255, 0, 0), -1);
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(255, 0, 0));
         }
-        //Red
+        //진행할 라인
         circle(pImage, present_point, 3, Scalar(0, 0, 255), -1);
         int *q = stats.ptr<int>(v[0].get_index());
         rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(0,0,255));
