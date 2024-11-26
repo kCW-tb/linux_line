@@ -16,9 +16,9 @@ Mat pre_image(Mat origin){
 
     cout << "mean2 : " << img_mean[0] << endl;
     
-    threshold(grayImg, thresImg, img_mean[0], 255, THRESH_BINARY);
+    threshold(grayImg, thresImg, img_mean[0] + 25, 255, THRESH_BINARY);
 
-    Mat roi = grayImg(Rect(Point(0, (grayImg.rows / 5)* 3), Point(grayImg.cols, grayImg.rows)));
+    Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 5)* 3), Point(grayImg.cols, grayImg.rows)));
     return roi;
 }
 
