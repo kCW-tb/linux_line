@@ -5,7 +5,7 @@
 #include <unistd.h>
 #include <sys/time.h>
 #include <signal.h>
-#include "opencv2/opencv.hpp"
+#include <opencv2/opencv.hpp>
 #include <cmath>
 #include <vector>
 #include <algorithm>
@@ -16,6 +16,7 @@ using namespace std;
 
 Mat pre_image(Mat origin);
 //void ctrlc_handler(int);
+Mat line_detect(Mat roi);
 
 class fix_p {
 private:
