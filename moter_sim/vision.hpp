@@ -30,6 +30,8 @@ public:
 
 bool compare_function(fix_p& compair_one, fix_p& compair_two);
 
+double normalize(int x);
+
 void get_k_error(int error, double *k_val);
 
 #endif
