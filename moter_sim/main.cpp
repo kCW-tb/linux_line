@@ -1,9 +1,9 @@
 #include "vision.hpp"
 #include "dxl.hpp"
 
-bool ctrl_c_pressed;
+bool ctrl_c_pressed = false;
 bool mode = false;
-double k = 0.5;
+double k = 0.3;
 void ctrlc(int)
 {
     ctrl_c_pressed = true;
@@ -49,25 +49,29 @@ int main(void)
 
     Point2d past_point(320, 45), present_point(320, 45); //과거 및 현재 좌표
     double distance; //중심점
-    char ch;
     cv::TickMeter tm;
     int error = 0;
     while (true) {
         tm.reset();
         tm.start();
-
+        if(!dxl.open()) { cerr << "dynamixel open error"<< endl; return -1; }
         if(dxl.kbhit()){
-            ch = dxl.getch();
+            char ch = dxl.getch();
             if(ch == 'q') break;
-            else if(ch == 's') mode = true;
+            else if(ch == 's') {mode = true; cout << "mode is true" << endl;}
         }
         if (ctrl_c_pressed) break;
 
         leftvel = int(100.0 - k * error);
         rightvel = -int(100.0 + k * error);
+        
         if(mode) dxl.setVelocity(leftvel, rightvel);
+        
+        cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
+        cout << "K_val : " << k << endl;
 
         line_video >> frame;
+
         if (frame.empty()) {
             cerr << "frame empty!" << endl; break;
         }
@@ -125,11 +129,12 @@ int main(void)
 
         past_point = present_point; //과거좌표 초기화
 
-        get_k_error(error,&k);
+        get_k_error(error, &k);
 
         tm.stop();
         cout << "Time : " << tm.getTimeMilli() << "ms" << endl;
         waitKey(30);
     }
+    dxl.close(); // 장치닫기
     return 0;
 }
