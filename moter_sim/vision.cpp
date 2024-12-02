@@ -33,7 +33,7 @@ double fix_p::get_distance() {
     return this->distance;
 }
 
-//sort함수 수행을 위해 생성한 코드.
+//sort함수 수행을 위해 생성한 코드. (오름차순과 내림차순을 결정)
 bool compare_function(fix_p& compair_one, fix_p& compair_two) {
     return compair_one.get_distance() < compair_two.get_distance();
 }
