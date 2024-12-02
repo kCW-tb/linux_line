@@ -1,13 +1,10 @@
 #include "vision.hpp"
 #include "dxl.hpp"
 
-bool ctrl_c_pressed = false;
-bool mode = false;
-double k = 0.3;
-void ctrlc(int)
-{
-    ctrl_c_pressed = true;
-}
+extern bool mode = false;
+extern double k = 0.3;
+extern bool ctrl_c_pressed = false;
+
 int main(void)
 {
     // image transport
@@ -37,7 +34,7 @@ int main(void)
 
     VideoWriter preImg(pre_img, 0, (double)30, Size(640, 144), true);
     if (!preImg.isOpened()) { cerr << "Writer open failed!" << endl; return -1; }
-
+    
     VideoCapture line_video("in_line.mp4");
     if(!line_video.isOpened()) { cerr << "Can't open the video" << endl; return -1; }
 
@@ -62,6 +59,9 @@ int main(void)
         }
         if (ctrl_c_pressed) break;
 
+        set_del(k, error);
+        
+        /*
         leftvel = int(100.0 - k * error);
         rightvel = -int(100.0 + k * error);
         
@@ -69,6 +69,7 @@ int main(void)
         
         cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
         cout << "K_val : " << k << endl;
+        */
 
         line_video >> frame;
 
@@ -77,7 +78,7 @@ int main(void)
         }
         //이미지 전처리
         pImage = pre_image(frame);
-
+        //라인 객체 검출출
         int lable_cnt = connectedComponentsWithStats(pImage, labels, stats, centroids);
         cvtColor(pImage, pImage, COLOR_GRAY2BGR);
 
