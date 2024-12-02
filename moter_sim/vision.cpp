@@ -1,5 +1,9 @@
 #include "vision.hpp"
 
+bool mode = false;
+double k = 0.3;
+bool ctrl_c_pressed = false;
+
 Mat pre_image(Mat origin){
     //const unsigned int print_mean = 0;
     Mat thresImg, grayImg;
@@ -55,4 +59,19 @@ void get_k_error(int error, double *k_val){
     if(error < 0) *k_val *= (-1);
 
     if(error < -40 && error < 40) *k_val = 0.2;
+}
+
+void set_dxl(double k, int error){
+    leftvel = int(100.0 - k * error);
+    rightvel = -int(100.0 + k * error);
+        
+    if(mode) dxl.setVelocity(leftvel, rightvel);
+        
+    cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
+    //cout << "K_val : " << k << endl;    
+}
+
+void ctrlc(int)
+{
+    ctrl_c_pressed = true;
 }
