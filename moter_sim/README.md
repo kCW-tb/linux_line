@@ -32,6 +32,26 @@ string src = "nvarguscamerasrc sensor-id=0 ! \
 
 ```
 
+낮은 계산양과 상단의 여러 방해물을 제거하기 위해 pre_image 함수를 이용하여 하단 영역만을 남긴다.
+```
+Mat pre_image(Mat origin){
+    //const unsigned int print_mean = 0;
+    Mat thresImg, grayImg;
+    cvtColor(origin, grayImg, COLOR_BGR2GRAY);
+
+    Scalar img_mean = mean(grayImg);
+    //cout << "mean1 : " << img_mean[0] << endl;
+    //밝기 보정하는 영역
+    grayImg = grayImg + (128 - img_mean[0]);
+    img_mean = mean(grayImg);
+    threshold(grayImg, thresImg, img_mean[0] + 25, 255, THRESH_BINARY);
+
+    Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 5)* 3), Point(grayImg.cols, grayImg.rows)));
+    return roi;
+}
+```
+mean을 계산하는 과정을 통해 전체적으로 밝은 날씨와 어두운 날씨에 대해 사용하지 못하게 되는 단점을 보완하였고 이진화는 평균값에 일정 값을 추가하여 진행하였다. 이후 3/5영역부터 1의 영역까지 행을 잘라 반환한다.
+
 
 Port를 8001과 8002로 나누어 각각 원본과 이진화되어 하단의 영역을 표시
 프레임당 connectedComponentsWithStats를 실행하여 이진화된 영상에 대하여 객체를 판별하고 이전 past_point와 present_point를 비교하여 가장 거리 차이가 적은 점을 다음 프레임의 라인으로 잡는다.
