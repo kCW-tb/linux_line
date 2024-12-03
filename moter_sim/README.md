@@ -126,3 +126,8 @@ void set_dxl(double k, int error){
 }
 ```
 조절된 k값과 error값은 이후 set_dxl 함수에 들어가 각각의 바퀴에 따른 속도를 조절하게 되어 라인트레이서가 완성된다.
+
+
+
+#MAKEFILE
+
