@@ -86,4 +86,4 @@ lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면
 
 1.  https://youtu.be/qKPKYbrr4PA
 
-2.  https://youtu.be/vfn5xC8FGOs
+2.  https://youtu.be/mkuS4HHe4AQ
