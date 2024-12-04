@@ -129,5 +129,9 @@ void set_dxl(double k, int error){
 
 
 
-#MAKEFILE
+#작동 영상
+
+동영상 1 : https://youtu.be/fCCPWCsQUZU
+
+동영상 2 : https://youtu.be/9My9HEBeNtU
 
