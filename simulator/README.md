@@ -84,8 +84,6 @@ lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면
 
 동영상 링크
 
-1.  https://youtu.be/OXlMzol8CkY
+1.  https://youtu.be/qKPKYbrr4PA
 
-2.  https://youtu.be/eRowOr8A568
-
-linux환경을 사용할 수 없어 후에 windows환경 코드를 linux환경과 일치시켜 수정 예정 (완료)
+2.  https://youtu.be/vfn5xC8FGOs
