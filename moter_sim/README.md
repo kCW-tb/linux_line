@@ -153,17 +153,18 @@ nomalize는 error값을 -1과 1 사이의 값으로 정규화시켜주며 get_k_
 
 
 ```
-void set_dxl(double k, int error){
-    leftvel = int(base_speed - get_speed(error, k));
-    rightvel = -int(base_speed + get_speed(error, k));
+        //증감에 이용할 speed 계산.
+        double speed = get_k_error(error, k);
+        cout << "speed : " << speed << endl;        
         
-    if(mode) dxl.setVelocity(leftvel, rightvel);
-        
-    //cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
-    //cout << "K_val : " << k << endl;    
-}
+        leftvel = int(base_speed - speed);
+        rightvel = -int(base_speed + speed);
+
+        if(mode) {
+            if(!dxl.setVelocity(leftvel, rightvel));
+        }
 ```
-조절된 k값과 error값의 계산은 이후 set_dxl 함수에 들어가 각각의 바퀴에 따른 속도를 조절하게 되어 모터 제어에 이용된다.
+조절된 k값과 error값의 계산은 이후 leftvel과 rightvel을 초기화하여 들어가 각각의 바퀴에 따른 속도를 조절하게 되어 모터 제어에 이용된다.
 
 
 
