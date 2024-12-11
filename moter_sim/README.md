@@ -31,6 +31,8 @@ string src = "nvarguscamerasrc sensor-id=0 ! \
 
 ```
 
+
+##라인 시뮬레이션
 낮은 계산양과 상단의 여러 방해물을 제거하기 위해 pre_image 함수를 이용하여 하단 영역만을 남긴다.
 ```
 Mat pre_image(Mat origin){
@@ -43,7 +45,7 @@ Mat pre_image(Mat origin){
     //밝기 보정하는 영역
     grayImg = grayImg + (128 - img_mean[0]);
     img_mean = mean(grayImg);
-    threshold(grayImg, thresImg, img_mean[0] + 25, 255, THRESH_BINARY);
+    threshold(grayImg, thresImg, img_mean[0] + 10, 255, THRESH_BINARY);
 
     Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 4)* 3), Point(grayImg.cols, grayImg.rows)));
     return roi;
@@ -51,42 +53,50 @@ Mat pre_image(Mat origin){
 ```
 mean을 계산하는 과정을 통해 전체적으로 밝은 날씨와 어두운 날씨에 대해 사용하지 못하게 되는 단점을 보완하였고 이진화는 평균값에 일정 값을 추가하여 진행하였다. 이후 3/4영역부터 1의 영역까지 행을 반환한다.
 
-
-Port를 8001과 8002로 나누어 각각 원본과 이진화 영상을 전송한다.
 ```
-source << frame;
-source2 << preImg;
-```
+        int lable_cnt = connectedComponentsWithStats(pImage, labels, stats, centroids);
+        cvtColor(pImage, pImage, COLOR_GRAY2BGR);
 
-프레임당 connectedComponentsWithStats를 실행하여 이진화된 영상에 대하여 객체를 판별하고 이전 past_point와 present_point를 비교하여 가장 거리 차이가 적은 점을 다음 프레임의 라인으로 잡는다.
+        vector<fix_p> v;
+        //0 번 배경은 빼고 다음부터 진행
+        for (int i = 1; i < lable_cnt; i++) {
+            double* p = centroids.ptr<double>(i);
+            int* q = stats.ptr<int>(i);
+
+            if (q[4] > 100) {
+                distance = sqrt(pow((present_point.x - p[0]), 2) + pow((present_point.y                 - p[1]), 2));
+                v.push_back(fix_p(i, distance));
+            }
+        }
+        sort(v.begin(), v.end(), compare_function);
+```
+lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면적을 가진 객체를 100이라는 임계값을 주어 stats행렬에서 무시하고 나머지 좌표들에 대해서 거리를 측정하여 fix_p 클래스 벡터에 차례대로 저장한다. 이후 클래스 벡터를 크기순으로 정렬한다.
+![image](https://github.com/user-attachments/assets/fc3c6e2d-f03e-4da1-82c3-1fd8f680d83a)
 
 ```
-        //가장 가까운 객체 무게중심 좌표로 초기화
+//가장 가까운 객체 무게중심 좌표로 초기화
         double* p = centroids.ptr<double>(v[0].get_index());
         present_point = Point2d(p[0], p[1]);
 
         distance = sqrt(pow((present_point.x - past_point.x), 2) + pow((present_point.y - past_point.y), 2));
         
-        if ((abs(present_point.x - past_point.x) > pImage.cols / 2) || (abs(present_point.y - past_point.y) > pImage.rows / 2)) {
+        if ((abs(present_point.x - past_point.x) > pImage.cols / 4) || (abs(present_point.y - past_point.y) > pImage.rows / 4)) {
             present_point = past_point;
             //cout << "distance : " << distance << endl;
         }
+
+        error = pImage.cols / 2 - present_point.x;
 ```
+검출된 좌표에 대해서 밖으로 나가서 사라지는 경우를 예방하기 위해 이전값과 비교하기 위해서 현재 잡힌 좌표와 이전에 잡힌 좌표의 거리를 비교하고 이 좌표가 이미지 전체에서 1/4영역보다 차이가 크면 무시하고 아닐 경우는 past_point를 present_point로 초기한다.
 
-이미지의 중앙에 대하여 error값을 x좌표로 구하고 디버깅용으로 라인이 잘 나오는지 확인.
 ```
-error = pImage.cols / 2 - present_point.x;
-
-        cout << "error: " << error << "\t";
-        //cout << " / Point: " << present_point << endl;
-
-        //진행 라인 O, y좌표가 87 이상이면 라인이 사라진것으로 파악 박스를 그리지 않는다.
+ //진행 라인 O
         circle(pImage, present_point, 3, Scalar(0, 0, 255), -1);
-        if(present_point.y < 87){
+        if(present_point.y < 85){
             int *q = stats.ptr<int>(v[0].get_index());
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(0,0,255), 2);
         }
-        //진행 라인 X, 나머지 객체에 대해 박스를 그려 파악한다.
+        //진행 라인 X
         for (size_t j = 1; j < v.size(); j++) {
             double* p = centroids.ptr<double>(v[j].get_index());
             int* q = stats.ptr<int>(v[j].get_index());
@@ -94,26 +104,53 @@ error = pImage.cols / 2 - present_point.x;
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(255, 0, 0), 2);
         }
 ```
+검출된 영상에 대해서 진행하여야 하는 라인은 붉은색으로 아닌 라인은 파란색으로 구별하여 디버깅을 수행. 현재 좌표 present_point 좌표의 y 좌표가 85이상인 경우 라인이 하단 넘어로 넘어가 현재 보이지 않는 것으로 판단하여 85 미만에 있을 경우에만 Rounding Box를 취해준다. 단 해당 라인이 사라진 것을 확인하기 위해서 circle로 past_point를 지속하여 유지하여 준다.
 
-생성되는 Error값들은 값이 약 -300~300으로 정의되고 이를 조절하는 k의 값을 조금 더 유동적으로 움직일 수 있게 하기위해
-함수를 생성.
+
+
+
+
+##라인 트레이서 관련
 
 ```
+    Dxl dxl;
+    if(!dxl.open()) { cout << "dynamixel open error"<< endl; return -1; }
+```
+Dxl을 활성화 시켜주는 코드
+
+```
+        if(dxl.kbhit()){
+            char ch = dxl.getch();
+            if(ch == 'q') break;
+            else if(ch == 's') {mode = true; cout << "mode is true" << endl;}
+            else if(ch == 'h') {base_speed+=10; k+=2;}
+            else if(ch == 'l') {base_speed-=10; k-=2;}
+        }
+```
+변화하는 속도 (base_speed)에 따라 k값을 변화시켜 실시간으로 속도가 증가할 때 k값도 증가시키는 등의 작업으로 속도 변화에 대한 회전 값을 변경시킨다.
+base_speed가 100인 경우에는 k값을 70으로 설정하였고 base_speed가 10씩 증감함에 따라 k값도 2씩 증감하게 하여 속도가 증가할수록 조금 더 빠르게 회전하는 것을 목표로 하였다.
+
+```
+//get_k_error에 사용되는 error값에 대한 정규화 진행
 double normalize(int x) {
-    return (x + 310.0) / 620.0;
+    return x / 350.0;
 }
 
-void get_speed(int error, double k_val){
+//error값에 따라 k값을 구하는 코드
+double get_k_error(int error, double k_val){
+    double norm_error;
     if(error != 0) {
-        get_k = normalize(error);
+        norm_error = normalize(error);
     }
-    else get_k = 0;
+    else norm_error = 0;
+    
+    cout << "norm_error : " << norm_error << endl;
 
-    return get_k * k_val;
+    return k_val * norm_error;
 }
 ```
 nomalize는 error값을 -1과 1 사이의 값으로 정규화시켜주며 get_k_error에서는 base_speed에 따라 변경되는 k값을 받아 base_speed에 증감을 더할 속도 값을 반환하게 하였다.
-base_speed가 100인 경우에는 k값을 70으로 설정하였고 base_speed가 10씩 증감함에 따라 k값도 2씩 증감하게 하여 속도가 증가할수록 조금 더 빠르게 회전하는 것을 목표로 하였다.
+
 
 ```
 void set_dxl(double k, int error){
@@ -132,7 +169,18 @@ void set_dxl(double k, int error){
 
 #작동 영상
 
+라인 시뮬레이션 영상
+
+동영상 1 : https://youtu.be/qKPKYbrr4PA
+
+동영상 2 : https://youtu.be/mkuS4HHe4AQ
+
+Dxl 제어 영상
+
 동영상 1 : https://youtu.be/fCCPWCsQUZU
 
 동영상 2 : https://youtu.be/9My9HEBeNtU
 
+라인 트레이서 영상
+
+동영상 1 : 
