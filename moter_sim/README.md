@@ -27,7 +27,7 @@ string src = "nvarguscamerasrc sensor-id=0 ! \
         h264parse ! rtph264pay pt=96 ! \
         udpsink host=203.234.58.152 port=8002 sync=false";
 
-    VideoWriter preImg(pre_img, 0, (double)30, Size(640, 144), true);
+    VideoWriter preImg(pre_img, 0, (double)30, Size(640, 90), true);
     if (!preImg.isOpened()) { cerr << "Writer open failed!" << endl; return -1; }
 
 ```
@@ -46,14 +46,19 @@ Mat pre_image(Mat origin){
     img_mean = mean(grayImg);
     threshold(grayImg, thresImg, img_mean[0] + 25, 255, THRESH_BINARY);
 
-    Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 5)* 3), Point(grayImg.cols, grayImg.rows)));
+    Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 4)* 3), Point(grayImg.cols, grayImg.rows)));
     return roi;
 }
 ```
 mean을 계산하는 과정을 통해 전체적으로 밝은 날씨와 어두운 날씨에 대해 사용하지 못하게 되는 단점을 보완하였고 이진화는 평균값에 일정 값을 추가하여 진행하였다. 이후 3/5영역부터 1의 영역까지 행을 잘라 반환한다.
 
 
-Port를 8001과 8002로 나누어 각각 원본과 이진화되어 하단의 영역을 표시
+Port를 8001과 8002로 나누어 각각 원본과 이진화 영상을 전송한다.
+```
+source << frame;
+source2 << preImg;
+```
+
 프레임당 connectedComponentsWithStats를 실행하여 이진화된 영상에 대하여 객체를 판별하고 이전 past_point와 present_point를 비교하여 가장 거리 차이가 적은 점을 다음 프레임의 라인으로 잡는다.
 
 ```
@@ -76,9 +81,9 @@ error = pImage.cols / 2 - present_point.x;
         cout << "error: " << error << "\t";
         //cout << " / Point: " << present_point << endl;
 
-        //진행 라인 O, y좌표가 135 이상이면 라인이 사라진것으로 파악 박스를 그리지 않는다.
+        //진행 라인 O, y좌표가 87 이상이면 라인이 사라진것으로 파악 박스를 그리지 않는다.
         circle(pImage, present_point, 3, Scalar(0, 0, 255), -1);
-        if(present_point.y < 135){
+        if(present_point.y < 87){
             int *q = stats.ptr<int>(v[0].get_index());
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(0,0,255), 2);
         }
