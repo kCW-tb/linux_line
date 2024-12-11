@@ -1,9 +1,5 @@
 #include "vision.hpp"
 
-bool mode = false;
-double k = 0.3;
-bool ctrl_c_pressed = false;
-
 Mat pre_image(Mat origin){
     //const unsigned int print_mean = 0;
     Mat thresImg, grayImg;
@@ -18,9 +14,9 @@ Mat pre_image(Mat origin){
 
     //cout << "mean2 : " << img_mean[0] << endl;
     
-    threshold(grayImg, thresImg, img_mean[0] + 25, 255, THRESH_BINARY);
-
-    Mat roi = thresImg(Rect(Point(0, (grayImg.rows / 5)* 3), Point(grayImg.cols, grayImg.rows)));
+    threshold(grayImg, thresImg, img_mean[0] + 10, 255, THRESH_BINARY);
+    //하단 1/4영역 호출
+    Mat roi = thresImg(Rect(Point(0, grayImg.rows * (3.0/4.0)), Point(grayImg.cols, grayImg.rows)));
     return roi;
 }
 //좌표 초기화 생성자.
@@ -37,41 +33,25 @@ double fix_p::get_distance() {
     return this->distance;
 }
 
-//sort함수 수행을 위해 생성한 코드. (오름차순과 내림차순을 결정)
+//sort함수 수행을 위해 생성한 코드.
 bool compare_function(fix_p& compair_one, fix_p& compair_two) {
     return compair_one.get_distance() < compair_two.get_distance();
 }
 
 //get_k_error에 사용되는 error값에 대한 정규화 진행
 double normalize(int x) {
-    return (x + 310.0) / 620.0;
+    return x / 350.0;
 }
 
 //error값에 따라 k값을 구하는 코드
-void get_k_error(int error, double *k_val){
-    double get_k;
+double get_k_error(int error, double k_val){
+    double norm_error;
     if(error != 0) {
-        get_k = normalize(error);
+        norm_error = normalize(error);
     }
-    else get_k = 0;
+    else norm_error = 0;
+    
+    cout << "norm_error : " << norm_error << endl;
 
-    *k_val = pow(get_k*(1/2.0), 2);
-    if(error < 0) *k_val *= (-1);
-
-    if(error < -40 && error < 40) *k_val = 0.2;
-}
-
-void set_dxl(double k, int error){
-    leftvel = int(100.0 - k * error);
-    rightvel = -int(100.0 + k * error);
-        
-    if(mode) dxl.setVelocity(leftvel, rightvel);
-        
-    cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
-    //cout << "K_val : " << k << endl;    
-}
-
-void ctrlc(int)
-{
-    ctrl_c_pressed = true;
+    return k_val * norm_error;
 }
