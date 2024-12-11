@@ -184,4 +184,9 @@ Dxl 제어 영상
 
 라인 트레이서 영상
 
-동영상 1 : 
+100rpm 유지 동영상
+동영상 1 : https://www.youtube.com/watch?v=M8UIMTLAlb8&list=PLD5xTFCRSYMl3mdoEcsJyxCHy7MI4VoYG&index=10
+
+속도 변화하는 영상
+동영상 1(컴퓨터 내) : https://youtu.be/WUuIuioKLGY
+동영상 2(외부 영상) : https://www.youtube.com/watch?v=WUuIuioKLGY&list=PLD5xTFCRSYMl3mdoEcsJyxCHy7MI4VoYG&index=9
