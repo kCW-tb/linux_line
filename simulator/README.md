@@ -1,6 +1,6 @@
 라인 찾는 시뮬레이터
 
-pImage = pre_image(frame);
+Mat pre_image(Mat origin);
 전처리 함수.
 
 ```
@@ -43,8 +43,10 @@ int lable_cnt = connectedComponentsWithStats(pImage, labels, stats, centroids);
         }
         sort(v.begin(), v.end(), compare_function);
 ```
-lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면적을 100이라는 임계값을 주어 무시하고 나머지 좌표들에 대해서 거리를 측정하여 fix_p 클래스 벡터에 차례대로 저장한다.
-이후 클래스 벡터를 정렬한다.
+lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면적을 가진 객체를 100이라는 임계값을 주어 stats행렬에서 무시하고 나머지 좌표들에 대해서 거리를 측정하여 fix_p 클래스 벡터에 차례대로 저장한다.
+이후 클래스 벡터를 크기순으로 정렬한다.
+
+![image](https://github.com/user-attachments/assets/35175caa-f1f6-47ae-b3fd-17e637a3965a)
 
 
 ```
@@ -61,7 +63,7 @@ lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면
 
         error = pImage.cols / 2 - present_point.x;
 ```
-검출된 좌표에 대해서 밖으로 나가서 사라지는 경우를 예방하기 위해 이전값과 비교하기 위해서 distance라는 변수에 대해 현재 잡힌 좌표와 거리를 비교하고 이 좌표가 이미지 전체에서 1/2영역보다 차이가 크면 무시하고 아닐 경우는 past_point를 present_point로 변경한다.
+검출된 좌표에 대해서 밖으로 나가서 사라지는 경우를 예방하기 위해 이전값과 비교하기 위해서 현재 잡힌 좌표와 이전에 잡힌 좌표의 거리를 비교하고 이 좌표가 이미지 전체에서 1/2영역보다 차이가 크면 무시하고 아닐 경우는 past_point를 present_point로 초기한다. 
 
 
 ```
@@ -80,6 +82,8 @@ lable_cnt 변수로 검출된 객체의 개수를 파악하고 너무 작은 면
         }
 ```
 검출된 영상에 대해서 진행하여야 하는 라인은 붉은색으로 아닌 라인은 파란색으로 구별하여 디버깅을 수행.
+현재 좌표 present_point 좌표의 y 좌표가 135이상인 경우 라인이 하단 넘어로 넘어가 현재 보이지 않는 것으로 판단하여 135 미만에 있을 경우에만 Rounding Box를 취해준다.
+단 해당 라인이 사라진 것을 확인하기 위해서 circle로 past_point를 지속하여 유지하여 준다.
 
 
 동영상 링크
