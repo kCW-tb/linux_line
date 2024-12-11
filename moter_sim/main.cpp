@@ -1,23 +1,25 @@
 #include "vision.hpp"
 #include "dxl.hpp"
 
-extern bool mode = false;
-extern double k = 0.3;
-extern bool ctrl_c_pressed = false;
-
+bool ctrl_c_pressed = false;
+bool mode = false;
+double k = 70.0;
+void ctrlc(int)
+{
+    ctrl_c_pressed = true;
+}
 int main(void)
 {
     // image transport
     string src = "nvarguscamerasrc sensor-id=0 ! \
-    video/x-raw(memory:NVMM), width=(int)640, height=(int)360, \
-    format=(string)NV12, framerate=(fraction)30/1 ! \
-    nvvidconv flip-method=0 ! video/x-raw, \
-    width=(int)640, height=(int)360, format=(string)BGRx ! \
-    videoconvert ! video/x-raw, format=(string)BGR ! appsink";
+        video/x-raw(memory:NVMM), width=(int)640, height=(int)360, \
+        format=(string)NV12, framerate=(fraction)30/1 ! \
+        nvvidconv flip-method=0 ! video/x-raw, \
+        width=(int)640, height=(int)360, format=(string)BGRx ! \
+        videoconvert ! video/x-raw, format=(string)BGR ! appsink";
     
     VideoCapture source(src, CAP_GSTREAMER);
-    
-    if (!source.isOpened()){ cout << "Camera error" << endl; return -1; }
+    if (!source.isOpened()) { cout << "Camera error" << endl; return -1; }
 
     string camera = "appsrc ! videoconvert ! video/x-raw, format=BGRx ! \
         nvvidconv ! nvv4l2h264enc insert-sps-pps=true ! \
@@ -32,14 +34,16 @@ int main(void)
         h264parse ! rtph264pay pt=96 ! \
         udpsink host=203.234.58.152 port=8002 sync=false";
 
-    VideoWriter preImg(pre_img, 0, (double)30, Size(640, 144), true);
+    VideoWriter preImg(pre_img, 0, (double)30, Size(640, 90), true);
     if (!preImg.isOpened()) { cerr << "Writer open failed!" << endl; return -1; }
-    
-    VideoCapture line_video("in_line.mp4");
-    if(!line_video.isOpened()) { cerr << "Can't open the video" << endl; return -1; }
+
+    //VideoCapture line_video("in_line.mp4");
+    //if(!line_video.isOpened()) { cerr << "Can't open the video" << endl; return -1; }
 
     Dxl dxl;
+    if(!dxl.open()) { cout << "dynamixel open error"<< endl; return -1; }
     int leftvel, rightvel;
+    //int start_count = 0;
 
     Mat frame, pImage;
     Mat labels, stats, centroids;
@@ -48,41 +52,46 @@ int main(void)
     double distance; //중심점
     cv::TickMeter tm;
     int error = 0;
+    double base_speed = 100;
+
     while (true) {
         tm.reset();
         tm.start();
-        if(!dxl.open()) { cerr << "dynamixel open error"<< endl; return -1; }
+        //line_video >> frame;
+        source >> frame;
+        if (frame.empty()){ cerr << "frame empty!" << endl; break; }
+
+        dxl.open();
         if(dxl.kbhit()){
             char ch = dxl.getch();
             if(ch == 'q') break;
-            else if(ch == 's') {mode = true; cout << "mode is true" << endl;}
+            else if(ch == 's') {mode = !mode; cout << "mode is true" << endl;}
+            else if(ch == 'h') {base_speed+=10; k+=2;}
+            else if(ch == 'l') {base_speed-=10; k-=2;}
         }
         if (ctrl_c_pressed) break;
+        cout << "base speed : " << base_speed << endl;
 
-        set_del(k, error);
+        //증감에 이용할 speed 계산.
+        double speed = get_k_error(error, k);
+        cout << "speed : " << speed << endl;        
         
-        /*
-        leftvel = int(100.0 - k * error);
-        rightvel = -int(100.0 + k * error);
-        
-        if(mode) dxl.setVelocity(leftvel, rightvel);
-        
-        cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
-        cout << "K_val : " << k << endl;
-        */
+        //if(speed > )
+        leftvel = int(base_speed - speed);
+        rightvel = -int(base_speed + speed);
 
-        line_video >> frame;
-
-        if (frame.empty()) {
-            cerr << "frame empty!" << endl; break;
+        if(mode) {
+            if(!dxl.setVelocity(leftvel, rightvel));
         }
+        
         //이미지 전처리
         pImage = pre_image(frame);
-        //라인 객체 검출출
+
         int lable_cnt = connectedComponentsWithStats(pImage, labels, stats, centroids);
         cvtColor(pImage, pImage, COLOR_GRAY2BGR);
 
         vector<fix_p> v;
+
         //0 번 배경은 빼고 다음부터 진행
         for (int i = 1; i < lable_cnt; i++) {
             double* p = centroids.ptr<double>(i);
@@ -99,9 +108,9 @@ int main(void)
         double* p = centroids.ptr<double>(v[0].get_index());
         present_point = Point2d(p[0], p[1]);
 
-        distance = sqrt(pow((present_point.x - past_point.x), 2) + pow((present_point.y - past_point.y), 2));
+        //distance = sqrt(pow((present_point.x - past_point.x), 2) + pow((present_point.y - past_point.y), 2));
         
-        if ((abs(present_point.x - past_point.x) > pImage.cols / 2) || (abs(present_point.y - past_point.y) > pImage.rows / 2)) {
+        if ((abs(present_point.x - past_point.x) > pImage.cols / 4) || (abs(present_point.y - past_point.y) > pImage.rows / 4)) {
             present_point = past_point;
             //cout << "distance : " << distance << endl;
         }
@@ -109,15 +118,15 @@ int main(void)
         error = pImage.cols / 2 - present_point.x;
 
         cout << "error: " << error << "\t";
-        //cout << " / Point: " << present_point << endl;
 
-        //진행 라인 O
+        //진행 라인 O, y좌표가 85 이상이면 라인이 사라진것으로 파악 박스를 그리지 않는다.
+        //단 확인을 위해 circle은 유지함.
         circle(pImage, present_point, 3, Scalar(0, 0, 255), -1);
-        if(present_point.y < 135){
+        if(present_point.y < 85){
             int *q = stats.ptr<int>(v[0].get_index());
             rectangle(pImage, Rect(q[0], q[1], q[2], q[3]), Scalar(0,0,255), 2);
         }
-        //진행 라인 X
+        //진행 라인 X, 나머지 객체에 대해 박스를 그려 파악한다.
         for (size_t j = 1; j < v.size(); j++) {
             double* p = centroids.ptr<double>(v[j].get_index());
             int* q = stats.ptr<int>(v[j].get_index());
@@ -130,11 +139,10 @@ int main(void)
 
         past_point = present_point; //과거좌표 초기화
 
-        get_k_error(error, &k);
-
         tm.stop();
-        cout << "Time : " << tm.getTimeMilli() << "ms" << endl;
-        waitKey(30);
+        cout << "error : " << error << ",   leftvel : " << leftvel
+         << ",  rightvel : " << rightvel << ",  Time : " << tm.getTimeMilli() << "ms" << endl;
+        //waitKey(30);
     }
     dxl.close(); // 장치닫기
     return 0;
