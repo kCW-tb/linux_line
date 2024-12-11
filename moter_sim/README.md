@@ -1,5 +1,3 @@
-다이나믹셀을 제어하는 dxl.cpp, dxl.hpp
-
 VideoCapture로 카메라에 대한 이미지를 받고 VideoWriter에서 Windows에서 디버깅용 화면을 출력하기 위해 변수들을 선언 및 객체를 열어준다.
 
 ```
