@@ -109,22 +109,25 @@ void get_speed(int error, double k_val){
         get_k = normalize(error);
     }
     else get_k = 0;
+
+    return get_k * k_val;
 }
 ```
-nomalize는 error값을 0과 1 사이의 값으로 일축시켜주며 get_k_error에서는 x^2의 그래프를 완만하게 해준 그래프에 대해 적용시켜 error값이 크다면 k값도 크게 하였다. 안쪽 라인을 지날 땐 빠르게 방향을 움직이며 바깥쪽을 다닐 때는 k값도 낮추어 다양한 속도에 맞춰 적용시키려 코드를 구성하였다.
+nomalize는 error값을 -1과 1 사이의 값으로 정규화시켜주며 get_k_error에서는 base_speed에 따라 변경되는 k값을 받아 base_speed에 증감을 더할 속도 값을 반환하게 하였다.
+base_speed가 100인 경우에는 k값을 70으로 설정하였고 base_speed가 10씩 증감함에 따라 k값도 2씩 증감하게 하여 속도가 증가할수록 조금 더 빠르게 회전하는 것을 목표로 하였다.
 
 ```
 void set_dxl(double k, int error){
-    leftvel = int(100.0 - k * error);
-    rightvel = -int(100.0 + k * error);
+    leftvel = int(base_speed - get_speed(error, k));
+    rightvel = -int(base_speed + get_speed(error, k));
         
     if(mode) dxl.setVelocity(leftvel, rightvel);
         
-    cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
+    //cout << "leftvel : " << leftvel << ",  rightvel : " << rightvel << endl;
     //cout << "K_val : " << k << endl;    
 }
 ```
-조절된 k값과 error값은 이후 set_dxl 함수에 들어가 각각의 바퀴에 따른 속도를 조절하게 되어 라인트레이서가 완성된다.
+조절된 k값과 error값의 계산은 이후 set_dxl 함수에 들어가 각각의 바퀴에 따른 속도를 조절하게 되어 모터 제어에 이용된다.
 
 
 
