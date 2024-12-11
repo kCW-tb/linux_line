@@ -99,17 +99,11 @@ double normalize(int x) {
     return (x + 310.0) / 620.0;
 }
 
-void get_k_error(int error, double *k_val){
-    double get_k;
+void get_speed(int error, double k_val){
     if(error != 0) {
         get_k = normalize(error);
     }
     else get_k = 0;
-
-    *k_val = pow(get_k*(1/2.0), 2);
-    if(error < 0) *k_val *= (-1);
-
-    if(error < -40 && error < 40) *k_val = 0.2;
 }
 ```
 nomalize는 error값을 0과 1 사이의 값으로 일축시켜주며 get_k_error에서는 x^2의 그래프를 완만하게 해준 그래프에 대해 적용시켜 error값이 크다면 k값도 크게 하였다. 안쪽 라인을 지날 땐 빠르게 방향을 움직이며 바깥쪽을 다닐 때는 k값도 낮추어 다양한 속도에 맞춰 적용시키려 코드를 구성하였다.
