@@ -4,15 +4,14 @@ VideoCapture로 카메라에 대한 이미지를 받고 VideoWriter에서 Window
 
 ```
 string src = "nvarguscamerasrc sensor-id=0 ! \
-    video/x-raw(memory:NVMM), width=(int)640, height=(int)360, \
-    format=(string)NV12, framerate=(fraction)30/1 ! \
-    nvvidconv flip-method=0 ! video/x-raw, \
-    width=(int)640, height=(int)360, format=(string)BGRx ! \
-    videoconvert ! video/x-raw, format=(string)BGR ! appsink";
+        video/x-raw(memory:NVMM), width=(int)640, height=(int)360, \
+        format=(string)NV12, framerate=(fraction)30/1 ! \
+        nvvidconv flip-method=0 ! video/x-raw, \
+        width=(int)640, height=(int)360, format=(string)BGRx ! \
+        videoconvert ! video/x-raw, format=(string)BGR ! appsink";
     
     VideoCapture source(src, CAP_GSTREAMER);
-    
-    if (!source.isOpened()){ cout << "Camera error" << endl; return -1; }
+    if (!source.isOpened()) { cout << "Camera error" << endl; return -1; }
 
     string camera = "appsrc ! videoconvert ! video/x-raw, format=BGRx ! \
         nvvidconv ! nvv4l2h264enc insert-sps-pps=true ! \
